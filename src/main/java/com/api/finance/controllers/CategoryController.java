@@ -3,7 +3,10 @@ package com.api.finance.controllers;
 import com.api.finance.entities.Budget;
 import com.api.finance.entities.Category;
 import com.api.finance.repositories.CategoryRepository;
+import com.api.finance.services.BudgetService;
+import com.api.finance.services.CategoryService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,47 +18,30 @@ import java.util.Optional;
 @AllArgsConstructor
 @CrossOrigin("*")
 public class CategoryController {
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
 
     @GetMapping
     public ResponseEntity<List<Category>> findAllCategory() {
-        return ResponseEntity.ok(categoryRepository.findAll());
+        return ResponseEntity.ok(categoryService.findAll());
     }
 
     @GetMapping("{id}")
     public ResponseEntity<Category> findCategoryById(@PathVariable Long id) {
-        Optional<Category> category = categoryRepository.findById(id);
-        return category.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return new ResponseEntity<>(categoryService.findCategoryById(id), HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<Category> createCategory(@RequestBody Category category) {
-        return ResponseEntity.ok(categoryRepository.save(category));
+        return new ResponseEntity<>(categoryService.saveCategory(category), HttpStatus.CREATED);
     }
 
     @PutMapping("{id}")
     public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        Optional<Category> categoryOptional = categoryRepository.findById(id);
-        if (categoryOptional.isPresent()) {
-            categoryOptional.get().setName(category.getName());
-            categoryOptional.get().setBalance(category.getBalance());
-            categoryOptional.get().setPercentage(category.getPercentage());
-
-            return ResponseEntity.ok(categoryRepository.save(categoryOptional.get()));
-        }
-
-        return ResponseEntity.notFound().build();
+        return new ResponseEntity<>(categoryService.updateCategory(id, category), HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<Category> deleteCategory(@PathVariable Long id) {
-        Optional<Category> categoryOptional = categoryRepository.findById(id);
-        if (categoryOptional.isPresent()) {
-            categoryRepository.delete(categoryOptional.get());
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.notFound().build();
+        return new ResponseEntity<>(categoryService.deleteCategory(id), HttpStatus.NO_CONTENT);
     }
-
 }
